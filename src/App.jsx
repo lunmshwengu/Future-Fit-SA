@@ -1,34 +1,62 @@
 import { useMemo, useState } from 'react';
-import ApsCalculator from './components/ApsCalculator';
-import BursaryList from './components/BursaryList';
-import BursaryModal from './components/BursaryModal';
-import { bursaries } from './data/bursaries';
+import Layout from './components/Layout';
+import { Skeleton } from './components/ui';
+import { hospitals, samples } from './data/mockData';
+import AIPage from './pages/AIPage';
+import AlertsPage from './pages/AlertsPage';
+import Dashboard from './pages/Dashboard';
+import DatabasePage from './pages/DatabasePage';
+import Login from './pages/Login';
+import Reports from './pages/Reports';
+import SampleDetails from './pages/SampleDetails';
+import SettingsPage from './pages/SettingsPage';
+import Stewardship from './pages/Stewardship';
+import SurveillanceMap from './pages/SurveillanceMap';
+
+function CurrentPage(props) {
+  if (props.page === 'dashboard') return <Dashboard />;
+  if (props.page === 'map') return <SurveillanceMap hospital={props.hospital} setHospital={props.setHospital} />;
+  if (props.page === 'database') return <DatabasePage {...props} />;
+  if (props.page === 'ai') return <AIPage />;
+  if (props.page === 'alerts') return <AlertsPage />;
+  if (props.page === 'stewardship') return <Stewardship />;
+  if (props.page === 'reports') return <Reports />;
+  return <SettingsPage dark={props.dark} setDark={props.setDark} />;
+}
 
 export default function App() {
-  const [search, setSearch] = useState('');
-  const [level, setLevel] = useState('All');
-  const [selected, setSelected] = useState(null);
+  const [authed, setAuthed] = useState(false);
+  const [page, setPage] = useState('dashboard');
+  const [dark, setDark] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [sample, setSample] = useState(null);
+  const [hospital, setHospital] = useState(hospitals[1]);
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState('All');
+  const [toast, setToast] = useState('');
+  const [navOpen, setNavOpen] = useState(false);
 
-  const levels = useMemo(() => ['All', ...new Set(bursaries.map((b) => b.level))], []);
-  const filtered = useMemo(() => bursaries.filter((b) =>
-    b.name.toLowerCase().includes(search.toLowerCase()) && (level === 'All' || b.level === level)
-  ), [search, level]);
+  const filteredSamples = useMemo(() => samples.filter((row) => {
+    const matchesFilter = filter === 'All' || row.resistance === filter;
+    const matchesQuery = Object.values(row).join(' ').toLowerCase().includes(query.toLowerCase());
+    return matchesFilter && matchesQuery;
+  }), [query, filter]);
 
-  return (
-    <main className="container">
-      <header className="hero">
-        <h1>Future Fit SA · Bursary Finder</h1>
-        <p>Professional bursary search with APS planning.</p>
-        <div className="filters">
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search bursaries" />
-          <select value={level} onChange={(e) => setLevel(e.target.value)}>
-            {levels.map((l) => <option key={l}>{l}</option>)}
-          </select>
-        </div>
-      </header>
-      <ApsCalculator />
-      <BursaryList bursaries={filtered} onSelect={setSelected} />
-      <BursaryModal bursary={selected} onClose={() => setSelected(null)} />
-    </main>
-  );
+  const navigate = (nextPage) => {
+    setLoading(true);
+    setPage(nextPage);
+    setSample(null);
+    setNavOpen(false);
+    setTimeout(() => setLoading(false), 350);
+  };
+
+  const demo = () => {
+    setAuthed(true);
+    setToast('Demo workspace loaded');
+    setTimeout(() => setToast(''), 2600);
+  };
+
+  if (!authed) return <Login demo={demo} dark={dark} setDark={setDark} />;
+
+  return <Layout page={page} sample={sample} dark={dark} setDark={setDark} navOpen={navOpen} setNavOpen={setNavOpen} navigate={navigate} toast={toast}>{loading ? <Skeleton /> : sample ? <SampleDetails sample={sample} /> : <CurrentPage page={page} hospital={hospital} setHospital={setHospital} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} rows={filteredSamples} setSample={setSample} dark={dark} setDark={setDark} />}</Layout>;
 }
