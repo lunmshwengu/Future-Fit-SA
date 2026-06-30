@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
+
 import Layout from './components/Layout';
 import { Skeleton } from './components/ui';
 import { hospitals, samples } from './data/mockData';
+
 import AIPage from './pages/AIPage';
 import AlertsPage from './pages/AlertsPage';
 import Dashboard from './pages/Dashboard';
@@ -36,11 +38,16 @@ export default function App() {
   const [toast, setToast] = useState('');
   const [navOpen, setNavOpen] = useState(false);
 
-  const filteredSamples = useMemo(() => samples.filter((row) => {
-    const matchesFilter = filter === 'All' || row.resistance === filter;
-    const matchesQuery = Object.values(row).join(' ').toLowerCase().includes(query.toLowerCase());
-    return matchesFilter && matchesQuery;
-  }), [query, filter]);
+  const filteredSamples = useMemo(() => {
+    return samples.filter((row) => {
+      const matchesFilter = filter === 'All' || row.resistance === filter;
+      const matchesQuery = Object.values(row)
+        .join(' ')
+        .toLowerCase()
+        .includes(query.toLowerCase());
+      return matchesFilter && matchesQuery;
+    });
+  }, [query, filter]);
 
   const navigate = (nextPage) => {
     setLoading(true);
@@ -56,7 +63,40 @@ export default function App() {
     setTimeout(() => setToast(''), 2600);
   };
 
-  if (!authed) return <Login demo={demo} dark={dark} setDark={setDark} />;
+  if (!authed) {
+    return <Login demo={demo} dark={dark} setDark={setDark} />;
+  }
 
-  return <Layout page={page} sample={sample} dark={dark} setDark={setDark} navOpen={navOpen} setNavOpen={setNavOpen} navigate={navigate} toast={toast}>{loading ? <Skeleton /> : sample ? <SampleDetails sample={sample} /> : <CurrentPage page={page} hospital={hospital} setHospital={setHospital} query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} rows={filteredSamples} setSample={setSample} dark={dark} setDark={setDark} />}</Layout>;
+  return (
+    <Layout
+      page={page}
+      sample={sample}
+      dark={dark}
+      setDark={setDark}
+      navOpen={navOpen}
+      setNavOpen={setNavOpen}
+      navigate={navigate}
+      toast={toast}
+    >
+      {loading ? (
+        <Skeleton />
+      ) : sample ? (
+        <SampleDetails sample={sample} />
+      ) : (
+        <CurrentPage
+          page={page}
+          hospital={hospital}
+          setHospital={setHospital}
+          query={query}
+          setQuery={setQuery}
+          filter={filter}
+          setFilter={setFilter}
+          rows={filteredSamples}
+          setSample={setSample}
+          dark={dark}
+          setDark={setDark}
+        />
+      )}
+    </Layout>
+  );
 }
