@@ -1,3 +1,4 @@
+// Legacy Future Fit module retained to avoid merge conflicts; BacTrace does not import it.
 export default function BursaryList({ bursaries, onSelect }) {
   return (
     <section>

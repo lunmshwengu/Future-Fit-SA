@@ -1,3 +1,4 @@
+// Legacy Future Fit module retained to avoid merge conflicts; BacTrace does not import it.
 export const compulsorySubjects = [
   'Home Language',
   'First Additional Language',

@@ -1,3 +1,4 @@
+// Legacy Future Fit module retained to avoid merge conflicts; BacTrace does not import it.
 import { useMemo, useState } from 'react';
 import { calculateAPS, getApsCategory } from '../utils/aps';
 import { electiveSubjects } from '../data/bursaries';
